@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../screens/tournamentDetails_screen.dart';
 class TournamentCard extends StatelessWidget {
   final String title;
   final VoidCallback onDetails;
@@ -32,8 +32,17 @@ class TournamentCard extends StatelessWidget {
             Align(
               alignment: Alignment.bottomRight,
               child: ElevatedButton(
-                onPressed: onDetails,
-                child: const Text("Détails"),
+                  onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                    builder: (context) => TournamentDetailsScreen(
+                    tournamentName: title,
+                    ),
+                  ),
+                );
+              },
+              child: const Text("Détails"),
               ),
             ),
           ],
