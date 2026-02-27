@@ -1,9 +1,15 @@
-import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'providers/tournament_provider.dart';
 import 'widgets/tournament.dart';
+import 'widgets/modalAddTournament.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'dart:io';
+
 void main() {
-  runApp(MyApp());
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -11,57 +17,84 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => MyAppState(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => TournamentProvider(),
+        ),
+      ],
       child: MaterialApp(
         title: 'Betclac',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.deepOrange,
+          ),
         ),
-        home: MyHomePage(),
+        home: const MyHomePage(),
       ),
     );
   }
 }
 
-class MyAppState extends ChangeNotifier {
-  var current = WordPair.random();
-
-  void getNext() {
-    current = WordPair.random();
-    notifyListeners();
-  }
-
-  var favorites = <WordPair>[];
-
-  void toggleFavorite() {
-    if (favorites.contains(current)) {
-      favorites.remove(current);
-    } else {
-      favorites.add(current);
-    }
-    notifyListeners();
-  }
-}
-
 class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key});
+
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  var selectedIndex = 0;
+  int selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Charger les tournois au démarrage
+    Future.microtask(() {
+      context.read<TournamentProvider>().loadTournaments();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     Widget page;
+
     switch (selectedIndex) {
       case 0:
-        page = GeneratorPage();
+        page = Consumer<TournamentProvider>(
+          builder: (context, provider, _) {
+            if (provider.tournaments.isEmpty) {
+              return const Center(
+                child: Text("Aucun tournoi pour le moment"),
+              );
+            }
+
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: provider.tournaments.map((tournament) {
+                return TournamentCard(
+                  title: tournament.name,
+                  onDetails: () {
+                    print("Voir détails ${tournament.name}");
+                  },
+                );
+              }).toList(),
+            );
+          },
+        );
+        break;
+
       case 1:
-        page = Placeholder();
+        page = const Center(child: Text("Teams page"));
+        break;
+
+      case 2:
+        page = const Center(child: Text("Leaderboard page"));
+        break;
+
       default:
-        throw UnimplementedError('no widget for $selectedIndex');
+        page = const SizedBox();
     }
 
     return LayoutBuilder(
@@ -72,7 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
               SafeArea(
                 child: NavigationRail(
                   extended: constraints.maxWidth >= 600,
-                  destinations: [
+                  destinations: const [
                     NavigationRailDestination(
                       icon: Icon(Icons.emoji_events),
                       label: Text('Tournaments'),
@@ -81,9 +114,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       icon: Icon(Icons.flag_circle),
                       label: Text('Teams'),
                     ),
-                     NavigationRailDestination(
+                    NavigationRailDestination(
                       icon: Icon(Icons.leaderboard),
-                      label: Text('Leaderbord'),
+                      label: Text('Leaderboard'),
                     ),
                   ],
                   selectedIndex: selectedIndex,
@@ -96,54 +129,34 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               Expanded(
                 child: Container(
-                  color: Theme.of(context).colorScheme.primaryContainer,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primaryContainer,
                   child: page,
                 ),
               ),
             ],
           ),
+          floatingActionButton: selectedIndex == 0
+              ? FloatingActionButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (_) => AddTournamentModal(
+                        onAdd: (name) async {
+                          await context
+                              .read<TournamentProvider>()
+                              .addTournament(name);
+                        },
+                      ),
+                    );
+                  },
+                  child: const Icon(Icons.add),
+                )
+              : null,
         );
       },
     );
   }
 }
-
-class GeneratorPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
-    var pair = appState.current;
-
-    IconData icon;
-    if (appState.favorites.contains(pair)) {
-      icon = Icons.favorite;
-    } else {
-      icon = Icons.favorite_border;
-    }
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          TournamentCard(
-            title: "Coupe du monde 2026",
-            onDetails: () {
-              print("Voir détails");
-            },
-          ),
-          TournamentCard(            
-            title: "JO 2028",
-            onDetails: () {
-              print("Voir détails");
-            },
-            ),
-          SizedBox(height: 10),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-          ),
-        ],
-      ),
-    );
-  }
-}
-

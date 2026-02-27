@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -35,6 +35,26 @@ class DatabaseHelper {
         name TEXT NOT NULL
       )
     ''');
+      await db.execute('''
+    CREATE TABLE teams(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL
+    )
+  ''');
+
+  await db.execute('''
+    CREATE TABLE matches(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      tournamentId INTEGER NOT NULL,
+      homeTeamId INTEGER NOT NULL,
+      awayTeamId INTEGER NOT NULL,
+      homeScore INTEGER,
+      awayScore INTEGER,
+      FOREIGN KEY (tournamentId) REFERENCES tournaments(id),
+      FOREIGN KEY (homeTeamId) REFERENCES teams(id),
+      FOREIGN KEY (awayTeamId) REFERENCES teams(id)
+    )
+      ''');
   }
 }
 
