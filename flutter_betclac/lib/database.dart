@@ -12,7 +12,6 @@ class DatabaseHelper {
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-
     _database = await _initDB('betclac_database.db');
     return _database!;
   }
@@ -53,6 +52,15 @@ class DatabaseHelper {
       FOREIGN KEY (tournamentId) REFERENCES tournaments(id),
       FOREIGN KEY (homeTeamId) REFERENCES teams(id),
       FOREIGN KEY (awayTeamId) REFERENCES teams(id)
+    )
+      ''');
+    await db.execute('''
+      CREATE TABLE tournament_teams(
+      tournamentId INTEGER NOT NULL,
+      teamId INTEGER NOT NULL,
+      PRIMARY KEY (tournamentId, teamId),
+      FOREIGN KEY (tournamentId) REFERENCES tournaments(id),
+      FOREIGN KEY (teamId) REFERENCES teams(id)
     )
       ''');
   }

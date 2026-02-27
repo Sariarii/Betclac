@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import '../screens/tournamentDetails_screen.dart';
+import '../data/tournament_data.dart'; 
 class TournamentCard extends StatelessWidget {
-  final String title;
+  final Tournament tournament;
   final VoidCallback onDetails;
 
   const TournamentCard({
     Key? key,
-    required this.title,
+    required this.tournament,
     required this.onDetails,
   }) : super(key: key);
 
@@ -22,7 +23,7 @@ class TournamentCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              title,
+              tournament.name,
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -37,7 +38,7 @@ class TournamentCard extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                     builder: (context) => TournamentDetailsScreen(
-                    tournamentName: title,
+                    tournament: tournament,
                     ),
                   ),
                 );

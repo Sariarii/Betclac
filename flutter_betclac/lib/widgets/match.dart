@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../screens/matchDetails_screen.dart';
-import '../data/match_data_dur.dart';
+import '../data/match_data.dart';
+
 class AddMatchForm extends StatefulWidget {
   final Function(String home, String away) onAdd;
 
@@ -50,11 +51,7 @@ class _AddMatchFormState extends State<AddMatchForm> {
             onPressed: () {
               if (homeController.text.isNotEmpty &&
                   awayController.text.isNotEmpty) {
-
-                widget.onAdd(
-                  homeController.text,
-                  awayController.text,
-                );
+                widget.onAdd(homeController.text, awayController.text);
 
                 Navigator.pop(context);
               }
@@ -94,25 +91,26 @@ class MatchCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            title, subtitle,
+            title,
+            subtitle,
             const SizedBox(height: 20),
             Align(
               alignment: Alignment.bottomRight,
               child: ElevatedButton(
-                  onPressed: () {
-                 Navigator.push(
+                onPressed: () {
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
-                    builder: (context) => MatchDetailsScreen(
-                    homeTeam: match.homeTeam,
-                    awayTeam: match.awayTeam,
-                    homeScore: match.homeScore ?? 0,
-                    awayScore: match.awayScore ?? 0,
+                      builder: (context) => MatchDetailsScreen(
+                        homeTeam: title.toString(),
+                        awayTeam: title.toString(),
+                        homeScore: match.homeScore ?? 0,
+                        awayScore: match.awayScore ?? 0,
+                      ),
                     ),
-                  ),
-                );
-              },
-              child: const Text("Détails"),
+                  );
+                },
+                child: const Text("Détails"),
               ),
             ),
           ],

@@ -20,4 +20,9 @@ class TournamentProvider extends ChangeNotifier {
     await loadTournaments();
     print("Nombre total: ${_tournaments.length}");
   }
+
+  Future<void> addTeamToTournament(int tournamentId, int teamId) async {
+    await _repository.addTeamToTournament(tournamentId, teamId);
+    notifyListeners();
+  }
 }

@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
-class AddTournamentModal extends StatefulWidget {
+class AddTeamModal extends StatefulWidget {
   final Function(String name) onAdd;
 
-  const AddTournamentModal({Key? key, required this.onAdd}) : super(key: key);
+  const AddTeamModal({
+    super.key,
+    required this.onAdd,
+  });
 
   @override
-  State<AddTournamentModal> createState() => _AddTournamentModalState();
+  State<AddTeamModal> createState() => _AddTeamModalState();
 }
 
-class _AddTournamentModalState extends State<AddTournamentModal> {
+class _AddTeamModalState extends State<AddTeamModal> {
   final TextEditingController _controller = TextEditingController();
 
   @override
@@ -25,18 +28,20 @@ class _AddTournamentModalState extends State<AddTournamentModal> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
-            "Ajouter un tournoi",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            "Ajouter une équipe",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 16),
-
           TextField(
             controller: _controller,
-            decoration: const InputDecoration(labelText: "Nom du tournoi"),
+            decoration: const InputDecoration(
+              labelText: "Nom de l'équipe",
+            ),
           ),
-
           const SizedBox(height: 20),
-
           ElevatedButton(
             onPressed: () {
               if (_controller.text.isNotEmpty) {
@@ -46,7 +51,6 @@ class _AddTournamentModalState extends State<AddTournamentModal> {
             },
             child: const Text("Ajouter"),
           ),
-
           const SizedBox(height: 20),
         ],
       ),

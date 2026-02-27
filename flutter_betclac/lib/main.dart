@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/tournament_provider.dart';
+import 'providers/team_provider.dart';
 import 'widgets/tournament.dart';
 import 'widgets/modalAddTournament.dart';
+import 'widgets/modalAddTeam.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'dart:io';
 
 void main() {
   sqfliteFfiInit();
@@ -19,15 +20,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => TournamentProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => TournamentProvider()),
+        ChangeNotifierProvider(create: (_) => TeamProvider()),
       ],
       child: MaterialApp(
         title: 'Betclac',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.deepOrange,
+            seedColor: const Color.fromARGB(255, 16, 10, 8),
           ),
         ),
         home: const MyHomePage(),
@@ -53,6 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // Charger les tournois au démarrage
     Future.microtask(() {
       context.read<TournamentProvider>().loadTournaments();
+      context.read<TeamProvider>().loadTeams();
     });
   }
 
@@ -65,16 +66,14 @@ class _MyHomePageState extends State<MyHomePage> {
         page = Consumer<TournamentProvider>(
           builder: (context, provider, _) {
             if (provider.tournaments.isEmpty) {
-              return const Center(
-                child: Text("Aucun tournoi pour le moment"),
-              );
+              return const Center(child: Text("Aucun tournoi pour le moment"));
             }
 
             return ListView(
               padding: const EdgeInsets.all(16),
               children: provider.tournaments.map((tournament) {
                 return TournamentCard(
-                  title: tournament.name,
+                  tournament: tournament,
                   onDetails: () {
                     print("Voir détails ${tournament.name}");
                   },
@@ -84,11 +83,22 @@ class _MyHomePageState extends State<MyHomePage> {
           },
         );
         break;
-
       case 1:
-        page = const Center(child: Text("Teams page"));
-        break;
+        page = Consumer<TeamProvider>(
+          builder: (context, provider, _) {
+            if (provider.teams.isEmpty) {
+              return const Center(child: Text("Aucune équipe"));
+            }
 
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: provider.teams.map((team) {
+                return Card(child: ListTile(title: Text(team.name)));
+              }).toList(),
+            );
+          },
+        );
+        break;
       case 2:
         page = const Center(child: Text("Leaderboard page"));
         break;
@@ -129,32 +139,40 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               Expanded(
                 child: Container(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primaryContainer,
+                  color: Theme.of(context).colorScheme.primaryContainer,
                   child: page,
                 ),
               ),
             ],
           ),
-          floatingActionButton: selectedIndex == 0
-              ? FloatingActionButton(
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (_) => AddTournamentModal(
-                        onAdd: (name) async {
-                          await context
-                              .read<TournamentProvider>()
-                              .addTournament(name);
-                        },
-                      ),
-                    );
-                  },
-                  child: const Icon(Icons.add),
-                )
-              : null,
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              if (selectedIndex == 0) {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (_) => AddTournamentModal(
+                    onAdd: (name) async {
+                      await context.read<TournamentProvider>().addTournament(
+                        name,
+                      );
+                    },
+                  ),
+                );
+              } else if (selectedIndex == 1) {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (_) => AddTeamModal(
+                    onAdd: (name) async {
+                      await context.read<TeamProvider>().addTeam(name);
+                    },
+                  ),
+                );
+              }
+            },
+            child: const Icon(Icons.add),
+          ),
         );
       },
     );
