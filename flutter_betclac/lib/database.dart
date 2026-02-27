@@ -20,11 +20,7 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDB,
-    );
+    return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
@@ -34,14 +30,21 @@ class DatabaseHelper {
         name TEXT NOT NULL
       )
     ''');
-      await db.execute('''
+    await db.execute('''
     CREATE TABLE teams(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL
     )
   ''');
+    await db.execute('''
+    CREATE TABLE bettors(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      firstName TEXT NOT NULL,
+      lastName TEXT NOT NULL
+    )
+  ''');
 
-  await db.execute('''
+    await db.execute('''
     CREATE TABLE matches(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       tournamentId INTEGER NOT NULL,
@@ -65,5 +68,3 @@ class DatabaseHelper {
       ''');
   }
 }
-
-

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/tournament_provider.dart';
 import 'providers/team_provider.dart';
+import 'providers/bettor_provider.dart';
 import 'widgets/tournament.dart';
 import 'widgets/modalAddTournament.dart';
 import 'widgets/modalAddTeam.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'widgets/modalAddBettor.dart';
 
 void main() {
   sqfliteFfiInit();
@@ -22,6 +24,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => TournamentProvider()),
         ChangeNotifierProvider(create: (_) => TeamProvider()),
+        ChangeNotifierProvider(create: (_) => BettorProvider()),
       ],
       child: MaterialApp(
         title: 'Betclac',
@@ -54,6 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Future.microtask(() {
       context.read<TournamentProvider>().loadTournaments();
       context.read<TeamProvider>().loadTeams();
+      context.read<BettorProvider>().loadBettors();
     });
   }
 
@@ -102,7 +106,25 @@ class _MyHomePageState extends State<MyHomePage> {
       case 2:
         page = const Center(child: Text("Leaderboard page"));
         break;
+      case 3:
+        page = Consumer<BettorProvider>(
+          builder: (context, provider, _) {
+            if (provider.bettors.isEmpty) {
+              return const Center(child: Text("Aucune parieur"));
+            }
 
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: provider.bettors.map((team) {
+                return Card(
+                  child: ListTile(
+                    title: Text("${team.firstName} ${team.lastName}"),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+        );
       default:
         page = const SizedBox();
     }
@@ -127,6 +149,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     NavigationRailDestination(
                       icon: Icon(Icons.leaderboard),
                       label: Text('Leaderboard'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.person),
+                      label: Text('Bettor'),
                     ),
                   ],
                   selectedIndex: selectedIndex,
@@ -166,6 +192,19 @@ class _MyHomePageState extends State<MyHomePage> {
                   builder: (_) => AddTeamModal(
                     onAdd: (name) async {
                       await context.read<TeamProvider>().addTeam(name);
+                    },
+                  ),
+                );
+              } else if (selectedIndex == 3) {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (_) => AddBettorModal(
+                    onAdd: (firstName, lastName) async {
+                      await context.read<BettorProvider>().addBettor(
+                        firstName,
+                        lastName,
+                      );
                     },
                   ),
                 );
